@@ -1,0 +1,796 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPO Management System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --navy:#102c54;
+    --blue:#087fc1;
+    --bg:#f3f7fc;
+    --white:#fff;
+    --text:#26364b;
+    --border:#dce5ef;
+}
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+header{
+    background:var(--navy);
+    color:white;
+    padding:20px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+}
+header h2{margin:0}
+header button{
+    background:#fff;
+    color:var(--navy);
+}
+nav{
+    background:#fff;
+    padding:12px;
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    border-bottom:1px solid var(--border);
+}
+nav button{
+    white-space:nowrap;
+    background:#eaf2fb;
+    color:var(--navy);
+}
+button{
+    border:0;
+    padding:10px 15px;
+    border-radius:7px;
+    cursor:pointer;
+    background:var(--blue);
+    color:white;
+    font-weight:bold;
+}
+button:hover{opacity:.88}
+main{padding:25px;max-width:1400px;margin:auto}
+section{display:none}
+section.active{display:block}
+h1{color:var(--navy);margin-top:0}
+h2{color:var(--navy)}
+.subtitle{color:#718096;margin-top:-8px}
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:18px;
+    margin:20px 0;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 3px 12px #102c5410;
+    border:1px solid var(--border);
+}
+.card p{color:#718096;margin:0 0 10px}
+.amount{font-size:25px;font-weight:bold;color:var(--navy)}
+.panel{
+    background:white;
+    padding:20px;
+    margin:20px 0;
+    border-radius:12px;
+    border:1px solid var(--border);
+    overflow-x:auto;
+}
+input,select,textarea{
+    width:100%;
+    padding:11px;
+    margin:7px 0 14px;
+    border:1px solid #ccd7e4;
+    border-radius:7px;
+    font-size:14px;
+}
+label{font-weight:bold;font-size:14px}
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:10px;
+}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{
+    padding:12px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+}
+th{background:#edf4fb;color:var(--navy)}
+.delete{background:#d93636}
+.edit{background:#e6a323;color:#222}
+.small{padding:7px 10px;font-size:12px}
+.hidden{display:none!important}
+.chart-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:20px;
+}
+.chart-box{height:280px;position:relative}
+.chart-box canvas{
+    width:100% !important;
+    height:100% !important;
+    display:block;
+}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+footer{text-align:center;padding:20px;color:#718096}
+body.dark{
+    --bg:#101c2c;
+    --white:#1b2b40;
+    --text:#edf3fa;
+    --border:#34465d;
+}
+body.dark .card,body.dark .panel,body.dark nav{background:#1b2b40;color:#edf3fa}
+body.dark h1,body.dark h2,body.dark .amount{color:#8ecbff}
+body.dark th{background:#263c56;color:white}
+body.dark nav button{background:#263c56;color:white}
+body.dark input,body.dark select{background:#263c56;color:white;border-color:#52647a}
+@media(max-width:600px){
+    main{padding:14px}
+    header{padding:16px}
+    .chart-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>📊 IPO Management System</h2>
+    <div class="actions">
+        <span id="adminDisplay">Admin</span>
+        <button onclick="logout()">Logout</button>
+    </div>
+</header>
+
+<nav>
+    <button onclick="showSection('dashboard')">Dashboard</button>
+    <button onclick="showSection('demat')">Demat Accounts</button>
+    <button onclick="showSection('ipo')">IPO Applications</button>
+    <button onclick="showSection('money')">Money Flow</button>
+    <button onclick="showSection('profit')">Profit Booking</button>
+    <button onclick="showSection('reports')">Reports</button>
+    <button onclick="showSection('settings')">Settings</button>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="active">
+    <h1>Financial Overview</h1>
+    <p class="subtitle">Manage your IPO investments and financial activities.</p>
+
+    <div class="cards">
+        <div class="card">
+            <p>Total Cash in Bank (Manual Entry)</p>
+            <div class="amount" id="dashBank">₹0</div>
+        </div>
+        <div class="card">
+            <p>Total Blocked Amount (Manual Entry)</p>
+            <div class="amount" id="dashBlocked">₹0</div>
+        </div>
+        <div class="card">
+            <p>Available Cash</p>
+            <div class="amount" id="dashAvailable">₹0</div>
+        </div>
+        <div class="card">
+            <p>Total IPO Applications</p>
+            <div class="amount" id="dashIPO">0</div>
+        </div>
+        <div class="card">
+            <p>Total Demat Accounts</p>
+            <div class="amount" id="dashDemat">0</div>
+        </div>
+        <div class="card">
+            <p>Net Profit / Loss</p>
+            <div class="amount" id="dashProfit">₹0</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Bank Cash Management</h2>
+        <div class="form-grid">
+            <div>
+                <label>Total Cash in Bank (₹)</label>
+                <input type="number" id="bankCashInput" min="0" placeholder="Enter bank cash">
+            </div>
+            <div>
+                <label>Total Blocked Amount (₹)</label>
+                <input type="number" id="blockedCashInput" min="0" placeholder="Enter blocked amount">
+            </div>
+        </div>
+        <button onclick="saveCash()">Save Cash Details</button>
+        <p><b>Available Cash = Total Bank Cash − Total Blocked Amount</b></p>
+    </div>
+
+    <h2>Dashboard Analytics</h2>
+    <div class="chart-grid">
+        <div class="panel">
+            <h3>IPO Applications Overview</h3>
+            <div class="chart-box"><canvas id="ipoChart"></canvas></div>
+        </div>
+        <div class="panel">
+            <h3>Profit & Loss Overview</h3>
+            <div class="chart-box"><canvas id="profitChart"></canvas></div>
+        </div>
+        <div class="panel">
+            <h3>Money Flow Overview</h3>
+            <div class="chart-box"><canvas id="moneyChart"></canvas></div>
+        </div>
+        <div class="panel">
+            <h3>Demat Account Overview</h3>
+            <div class="chart-box"><canvas id="dematChart"></canvas></div>
+        </div>
+    </div>
+</section>
+
+<!-- DEMAT ACCOUNTS -->
+<section id="demat">
+    <h1>Demat Account Management</h1>
+    <p class="subtitle">Add and manage Demat account records.</p>
+
+    <div class="panel">
+        <h2>Add Demat Account</h2>
+        <div class="form-grid">
+            <div><label>Account Holder Name</label><input id="dematHolder" placeholder="Enter name"></div>
+            <div><label>Broker Name</label><input id="dematBroker" placeholder="Enter broker"></div>
+            <div><label>Demat Account ID</label><input id="dematID" placeholder="Enter account ID"></div>
+            <div><label>Available Cash (₹)</label><input type="number" id="dematCash" min="0" placeholder="Enter cash"></div>
+            <div><label>Status</label>
+                <select id="dematStatus"><option>Active</option><option>Inactive</option></select>
+            </div>
+        </div>
+        <button onclick="addDemat()">Add Account</button>
+    </div>
+
+    <div class="panel">
+        <h2>Demat Account Records</h2>
+        <input id="dematSearch" placeholder="Search account..." oninput="renderDemat()">
+        <select id="dematFilter" onchange="renderDemat()">
+            <option value="">All Status</option><option>Active</option><option>Inactive</option>
+        </select>
+        <select id="dematSort" onchange="renderDemat()">
+            <option value="newest">Newest First</option>
+            <option value="holder">Holder Name</option>
+            <option value="cash">Cash: High to Low</option>
+        </select>
+        <div id="dematTable"></div>
+    </div>
+</section>
+
+<!-- IPO APPLICATIONS -->
+<section id="ipo">
+    <h1>IPO Application Management</h1>
+    <p class="subtitle">Track IPO applications and their status.</p>
+
+    <div class="panel">
+        <h2>Add IPO Application</h2>
+        <div class="form-grid">
+            <div><label>IPO Name</label><input id="ipoName" placeholder="IPO name"></div>
+            <div><label>Applicant Name</label><input id="ipoApplicant" placeholder="Applicant name"></div>
+            <div><label>Demat Account</label><input id="ipoAccount" placeholder="Account ID"></div>
+            <div><label>Applied Amount (₹)</label><input type="number" id="ipoAmount" min="0" placeholder="Amount"></div>
+            <div><label>Application Date</label><input type="date" id="ipoDate"></div>
+            <div><label>Status</label>
+                <select id="ipoStatus">
+                    <option>Applied</option><option>Allotted</option><option>Not Allotted</option><option>Pending</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="addIPO()">Add IPO</button>
+    </div>
+
+    <div class="panel">
+        <h2>IPO Application Records</h2>
+        <input id="ipoSearch" placeholder="Search IPO..." oninput="renderIPO()">
+        <select id="ipoFilter" onchange="renderIPO()">
+            <option value="">All Status</option>
+            <option>Applied</option><option>Allotted</option><option>Not Allotted</option><option>Pending</option>
+        </select>
+        <select id="ipoSort" onchange="renderIPO()">
+            <option value="newest">Newest First</option>
+            <option value="name">IPO Name</option>
+            <option value="amount">Amount: High to Low</option>
+        </select>
+        <div id="ipoTable"></div>
+    </div>
+</section>
+
+<!-- MONEY FLOW -->
+<section id="money">
+    <h1>Money Flow Management</h1>
+    <p class="subtitle">Record money deposits and withdrawals.</p>
+
+    <div class="panel">
+        <h2>Add Money Transaction</h2>
+        <div class="form-grid">
+            <div><label>Transaction Type</label>
+                <select id="moneyType"><option>Deposit</option><option>Withdrawal</option></select>
+            </div>
+            <div><label>Amount (₹)</label><input type="number" id="moneyAmount" min="0" placeholder="Amount"></div>
+            <div><label>Date</label><input type="date" id="moneyDate"></div>
+            <div><label>Description</label><input id="moneyDescription" placeholder="Description"></div>
+        </div>
+        <button onclick="addMoney()">Add Transaction</button>
+    </div>
+
+    <div class="panel">
+        <h2>Money Flow Records</h2>
+        <input id="moneySearch" placeholder="Search transaction..." oninput="renderMoney()">
+        <select id="moneyFilter" onchange="renderMoney()">
+            <option value="">All Types</option><option>Deposit</option><option>Withdrawal</option>
+        </select>
+        <select id="moneySort" onchange="renderMoney()">
+            <option value="newest">Newest First</option><option value="date">Oldest First</option><option value="amount">Amount: High to Low</option>
+        </select>
+        <div id="moneyTable"></div>
+    </div>
+</section>
+
+<!-- PROFIT BOOKING -->
+<section id="profit">
+    <h1>Profit Booking Management</h1>
+    <p class="subtitle">Track IPO investments and calculate profit or loss.</p>
+
+    <div class="cards">
+        <div class="card"><p>Total Investment</p><div class="amount" id="totalInvestment">₹0</div></div>
+        <div class="card"><p>Total Sale Value</p><div class="amount" id="totalSale">₹0</div></div>
+        <div class="card"><p>Net Profit / Loss</p><div class="amount" id="totalNetProfit">₹0</div></div>
+    </div>
+
+    <div class="panel">
+        <h2>Add Profit Booking</h2>
+        <div class="form-grid">
+            <div><label>IPO Name</label><input id="profitIPO" placeholder="IPO name"></div>
+            <div><label>Investment Amount (₹)</label><input type="number" id="profitInvestment" min="0" placeholder="Investment"></div>
+            <div><label>Sale Value (₹)</label><input type="number" id="profitSale" min="0" placeholder="Sale value"></div>
+            <div><label>Booking Date</label><input type="date" id="profitDate"></div>
+        </div>
+        <button onclick="addProfit()">Save Profit Booking</button>
+    </div>
+
+    <div class="panel">
+        <h2>Profit Booking Records</h2>
+        <input id="profitSearch" placeholder="Search IPO..." oninput="renderProfit()">
+        <select id="profitSort" onchange="renderProfit()">
+            <option value="newest">Newest First</option><option value="profit">Highest Profit</option><option value="loss">Highest Loss</option>
+        </select>
+        <div id="profitTable"></div>
+    </div>
+</section>
+
+<!-- REPORTS -->
+<section id="reports">
+    <h1>Reports & Analytics</h1>
+    <p class="subtitle">View and export your management records.</p>
+    <div class="cards">
+        <div class="card"><p>Total IPO Records</p><div class="amount" id="reportIPO">0</div></div>
+        <div class="card"><p>Total Demat Accounts</p><div class="amount" id="reportDemat">0</div></div>
+        <div class="card"><p>Money Transactions</p><div class="amount" id="reportMoney">0</div></div>
+        <div class="card"><p>Profit Records</p><div class="amount" id="reportProfit">0</div></div>
+    </div>
+    <div class="panel">
+        <h2>Download Reports</h2>
+        <button onclick="downloadCSV()">Download Full Report (CSV)</button>
+        <button onclick="downloadBackup()">Download Data Backup (JSON)</button>
+    </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings">
+    <h1>Settings</h1>
+    <p class="subtitle">Manage your dashboard preferences and data backup.</p>
+
+    <div class="panel">
+        <h2>Admin Profile</h2>
+        <label>Admin Name</label>
+        <input id="adminName" placeholder="Admin name">
+        <label>Admin Email</label>
+        <input id="adminEmail" type="email" placeholder="Admin email">
+        <button onclick="saveProfile()">Save Profile</button>
+    </div>
+
+    <div class="panel">
+        <h2>Appearance</h2>
+        <button onclick="toggleTheme()">Toggle Light / Dark Mode</button>
+    </div>
+
+    <div class="panel">
+        <h2>Data Backup & Restore</h2>
+        <p>Download a JSON backup of all your records.</p>
+        <button onclick="downloadBackup()">Download Backup</button>
+        <hr>
+        <label>Restore Backup File</label>
+        <input type="file" id="restoreFile" accept=".json">
+        <button onclick="restoreBackup()">Restore Data</button>
+        <p><b>Warning:</b> Restore will replace your current saved records.</p>
+    </div>
+</section>
+
+</main>
+<footer>IPO Management System | Frontend Demo Project</footer>
+
+<script>
+// LOGIN CHECK
+if(sessionStorage.getItem("ipoAdminLoggedIn") !== "true"){
+    window.location.href = "index.html";
+}
+
+const KEYS = {
+    demat:"ipoDematAccounts",
+    ipo:"ipoRecords",
+    money:"ipoMoneyRecords",
+    profit:"ipoProfitRecords"
+};
+
+function getData(key){
+    try{return JSON.parse(localStorage.getItem(key)) || [];}
+    catch(e){return [];}
+}
+function saveData(key,data){localStorage.setItem(key,JSON.stringify(data));}
+let demat=getData(KEYS.demat);
+let ipo=getData(KEYS.ipo);
+let money=getData(KEYS.money);
+let profit=getData(KEYS.profit);
+
+function moneyFormat(n){
+    return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+}
+function val(id){return document.getElementById(id).value.trim();}
+function safe(s){
+    return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function showSection(id){
+    document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    refreshAll();
+}
+function logout(){
+    sessionStorage.removeItem("ipoAdminLoggedIn");
+    window.location.href="index.html";
+}
+
+// CASH MANAGEMENT
+function saveCash(){
+    const bank=Number(val("bankCashInput"));
+    const blocked=Number(val("blockedCashInput"));
+    if(bank<0 || blocked<0 || !Number.isFinite(bank) || !Number.isFinite(blocked)){
+        alert("Enter valid cash amounts.");return;
+    }
+    if(blocked>bank){alert("Blocked amount cannot be greater than bank cash.");return;}
+    localStorage.setItem("ipoBankCash",bank);
+    localStorage.setItem("ipoBlockedCash",blocked);
+    refreshAll();
+    alert("Cash details saved.");
+}
+function updateCash(){
+    const bank=Number(localStorage.getItem("ipoBankCash")||0);
+    const blocked=Number(localStorage.getItem("ipoBlockedCash")||0);
+    document.getElementById("dashBank").textContent=moneyFormat(bank);
+    document.getElementById("dashBlocked").textContent=moneyFormat(blocked);
+    document.getElementById("dashAvailable").textContent=moneyFormat(bank-blocked);
+    document.getElementById("bankCashInput").value=bank;
+    document.getElementById("blockedCashInput").value=blocked;
+}
+
+// DEMAT
+function addDemat(){
+    const holder=val("dematHolder"),broker=val("dematBroker"),id=val("dematID");
+    const cash=Number(val("dematCash")),status=val("dematStatus");
+    if(!holder||!broker||!id||val("dematCash")===""){alert("Please fill all Demat details.");return;}
+    if(cash<0){alert("Enter a valid cash amount.");return;}
+    demat.push({id:Date.now(),holder,broker,account:id,cash,status,date:new Date().toISOString()});
+    saveData(KEYS.demat,demat);
+    ["dematHolder","dematBroker","dematID","dematCash"].forEach(x=>document.getElementById(x).value="");
+    refreshAll();
+}
+function renderDemat(){
+    let a=[...demat],q=val("dematSearch").toLowerCase(),f=val("dematFilter"),s=val("dematSort");
+    a=a.filter(x=>(x.holder+x.broker+x.account).toLowerCase().includes(q)&&(!f||x.status===f));
+    if(s==="holder")a.sort((x,y)=>x.holder.localeCompare(y.holder));
+    if(s==="cash")a.sort((x,y)=>y.cash-x.cash);
+    if(s==="newest")a.reverse();
+    document.getElementById("dematTable").innerHTML=table(["Holder","Broker","Account ID","Cash","Status","Action"],a.map(x=>[
+        safe(x.holder),safe(x.broker),safe(x.account),moneyFormat(x.cash),safe(x.status),
+        `<button class="delete small" onclick="deleteRecord('demat',${x.id})">Delete</button>`
+    ]));
+}
+
+// IPO
+function addIPO(){
+    const name=val("ipoName"),applicant=val("ipoApplicant"),account=val("ipoAccount");
+    const amount=Number(val("ipoAmount")),date=val("ipoDate"),status=val("ipoStatus");
+    if(!name||!applicant||!account||!date||val("ipoAmount")===""){alert("Please fill all IPO details.");return;}
+    if(amount<0){alert("Enter a valid amount.");return;}
+    ipo.push({id:Date.now(),name,applicant,account,amount,date,status});
+    saveData(KEYS.ipo,ipo);
+    ["ipoName","ipoApplicant","ipoAccount","ipoAmount","ipoDate"].forEach(x=>document.getElementById(x).value="");
+    refreshAll();
+}
+function renderIPO(){
+    let a=[...ipo],q=val("ipoSearch").toLowerCase(),f=val("ipoFilter"),s=val("ipoSort");
+    a=a.filter(x=>(x.name+x.applicant+x.account).toLowerCase().includes(q)&&(!f||x.status===f));
+    if(s==="name")a.sort((x,y)=>x.name.localeCompare(y.name));
+    if(s==="amount")a.sort((x,y)=>y.amount-x.amount);
+    if(s==="newest")a.reverse();
+    document.getElementById("ipoTable").innerHTML=table(["IPO Name","Applicant","Account","Amount","Date","Status","Action"],a.map(x=>[
+        safe(x.name),safe(x.applicant),safe(x.account),moneyFormat(x.amount),safe(x.date),safe(x.status),
+        `<button class="delete small" onclick="deleteRecord('ipo',${x.id})">Delete</button>`
+    ]));
+}
+
+// MONEY FLOW
+function addMoney(){
+    const type=val("moneyType"),amount=Number(val("moneyAmount")),date=val("moneyDate"),description=val("moneyDescription");
+    if(val("moneyAmount")===""||!date||amount<=0){alert("Enter a valid amount and date.");return;}
+    money.push({id:Date.now(),type,amount,date,description});
+    saveData(KEYS.money,money);
+    ["moneyAmount","moneyDate","moneyDescription"].forEach(x=>document.getElementById(x).value="");
+    refreshAll();
+}
+function renderMoney(){
+    let a=[...money],q=val("moneySearch").toLowerCase(),f=val("moneyFilter"),s=val("moneySort");
+    a=a.filter(x=>(x.description+x.type).toLowerCase().includes(q)&&(!f||x.type===f));
+    if(s==="date")a.sort((x,y)=>x.date.localeCompare(y.date));
+    if(s==="amount")a.sort((x,y)=>y.amount-x.amount);
+    if(s==="newest")a.reverse();
+    document.getElementById("moneyTable").innerHTML=table(["Type","Amount","Date","Description","Action"],a.map(x=>[
+        safe(x.type),moneyFormat(x.amount),safe(x.date),safe(x.description),
+        `<button class="delete small" onclick="deleteRecord('money',${x.id})">Delete</button>`
+    ]));
+}
+
+// PROFIT BOOKING
+function addProfit(){
+    const name=val("profitIPO"),investment=Number(val("profitInvestment")),sale=Number(val("profitSale")),date=val("profitDate");
+    if(!name||val("profitInvestment")===""||val("profitSale")===""||!date){alert("Please fill all profit details.");return;}
+    if(investment<0||sale<0){alert("Enter valid amounts.");return;}
+    profit.push({id:Date.now(),name,investment,sale,net:sale-investment,date});
+    saveData(KEYS.profit,profit);
+    ["profitIPO","profitInvestment","profitSale","profitDate"].forEach(x=>document.getElementById(x).value="");
+    refreshAll();
+}
+function renderProfit(){
+    let a=[...profit],q=val("profitSearch").toLowerCase(),s=val("profitSort");
+    a=a.filter(x=>x.name.toLowerCase().includes(q));
+    if(s==="profit")a.sort((x,y)=>y.net-x.net);
+    if(s==="loss")a.sort((x,y)=>x.net-y.net);
+    if(s==="newest")a.reverse();
+    document.getElementById("profitTable").innerHTML=table(["IPO Name","Investment","Sale Value","Profit / Loss","Date","Action"],a.map(x=>[
+        safe(x.name),moneyFormat(x.investment),moneyFormat(x.sale),
+        `<b style="color:${x.net>=0?'green':'red'}">${moneyFormat(x.net)}</b>`,safe(x.date),
+        `<button class="delete small" onclick="deleteRecord('profit',${x.id})">Delete</button>`
+    ]));
+    const investment=profit.reduce((s,x)=>s+x.investment,0);
+    const sale=profit.reduce((s,x)=>s+x.sale,0);
+    document.getElementById("totalInvestment").textContent=moneyFormat(investment);
+    document.getElementById("totalSale").textContent=moneyFormat(sale);
+    document.getElementById("totalNetProfit").textContent=moneyFormat(sale-investment);
+}
+
+// TABLE HELPER
+function table(headers,rows){
+    if(!rows.length)return "<p>No records found.</p>";
+    return `<table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+// DELETE
+function deleteRecord(type,id){
+    if(!confirm("Are you sure you want to delete this record?"))return;
+    if(type==="demat")demat=demat.filter(x=>x.id!==id);
+    if(type==="ipo")ipo=ipo.filter(x=>x.id!==id);
+    if(type==="money")money=money.filter(x=>x.id!==id);
+    if(type==="profit")profit=profit.filter(x=>x.id!==id);
+    saveData(KEYS[type],{demat,ipo,money,profit}[type]);
+    refreshAll();
+}
+
+// CHARTS
+
+// CHARTS
+let charts = {};
+
+function drawChart(id, type, labels, values) {
+    const canvas = document.getElementById(id);
+
+    if (!canvas) {
+        console.error("Chart canvas not found:", id);
+        return;
+    }
+
+    if (typeof window.Chart === "undefined") {
+        console.error("Chart.js library is not loaded.");
+        canvas.parentElement.innerHTML =
+            "<p style='color:red;text-align:center;padding:30px'>Chart.js not loaded. Check internet connection.</p>";
+        return;
+    }
+
+    if (charts[id]) {
+        charts[id].destroy();
+    }
+
+    charts[id] = new window.Chart(canvas, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Records",
+                data: values,
+                backgroundColor: [
+                    "#087fc1",
+                    "#20a477",
+                    "#f2b544",
+                    "#e45b5b"
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "bottom"
+                }
+            }
+        }
+    });
+}
+
+function drawDashboardCharts() {
+
+    drawChart(
+        "ipoChart",
+        "doughnut",
+        ["Applied", "Allotted", "Not Allotted", "Pending"],
+        ["Applied", "Allotted", "Not Allotted", "Pending"].map(
+            status => ipo.filter(x => x.status === status).length
+        )
+    );
+
+    drawChart(
+        "profitChart",
+        "bar",
+        ["Investment", "Sale Value"],
+        [
+            profit.reduce((sum, x) => sum + Number(x.investment || 0), 0),
+            profit.reduce((sum, x) => sum + Number(x.sale || 0), 0)
+        ]
+    );
+
+    drawChart(
+        "moneyChart",
+        "bar",
+        ["Deposit", "Withdrawal"],
+        ["Deposit", "Withdrawal"].map(
+            type => money
+                .filter(x => x.type === type)
+                .reduce((sum, x) => sum + Number(x.amount || 0), 0)
+        )
+    );
+
+    drawChart(
+        "dematChart",
+        "pie",
+        ["Active", "Inactive"],
+        ["Active", "Inactive"].map(
+            status => demat.filter(x => x.status === status).length
+        )
+    );
+}
+
+
+// REPORTS
+function downloadCSV(){
+    const lines=[["Type","Name","Amount","Date","Status"]];
+    demat.forEach(x=>lines.push(["Demat",x.holder,x.cash,x.date,x.status]));
+    ipo.forEach(x=>lines.push(["IPO",x.name,x.amount,x.date,x.status]));
+    money.forEach(x=>lines.push(["Money",x.type,x.amount,x.date,""]));
+    profit.forEach(x=>lines.push(["Profit",x.name,x.net,x.date,""]));
+    const csv=lines.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n");
+    downloadFile(csv,"IPO_Management_Full_Report.csv","text/csv");
+}
+function downloadFile(content,name,type){
+    const blob=new Blob([content],{type});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=name;a.click();
+    URL.revokeObjectURL(url);
+}
+
+// BACKUP
+function downloadBackup(){
+    const backup={
+        demat,ipo,money,profit,
+        bankCash:localStorage.getItem("ipoBankCash")||"0",
+        blockedCash:localStorage.getItem("ipoBlockedCash")||"0",
+        adminName:localStorage.getItem("ipoAdminName")||"Admin",
+        adminEmail:localStorage.getItem("ipoAdminEmail")||"",
+        theme:localStorage.getItem("ipoTheme")||"light"
+    };
+    downloadFile(JSON.stringify(backup,null,2),"IPO_Management_Backup.json","application/json");
+}
+function restoreBackup(){
+    const file=document.getElementById("restoreFile").files[0];
+    if(!file){alert("Please select a backup JSON file.");return;}
+    if(!confirm("Restore will replace your current records. Continue?"))return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+        try{
+            const b=JSON.parse(reader.result);
+            if(!Array.isArray(b.demat)||!Array.isArray(b.ipo)||!Array.isArray(b.money)||!Array.isArray(b.profit)){
+                throw new Error("Invalid backup format");
+            }
+            demat=b.demat;ipo=b.ipo;money=b.money;profit=b.profit;
+            saveData(KEYS.demat,demat);saveData(KEYS.ipo,ipo);
+            saveData(KEYS.money,money);saveData(KEYS.profit,profit);
+            localStorage.setItem("ipoBankCash",b.bankCash||"0");
+            localStorage.setItem("ipoBlockedCash",b.blockedCash||"0");
+            localStorage.setItem("ipoAdminName",b.adminName||"Admin");
+            localStorage.setItem("ipoAdminEmail",b.adminEmail||"");
+            localStorage.setItem("ipoTheme",b.theme||"light");
+            alert("Backup restored successfully.");
+            location.reload();
+        }catch(e){alert("Invalid backup file.");}
+    };
+    reader.readAsText(file);
+}
+
+// SETTINGS
+function saveProfile(){
+    localStorage.setItem("ipoAdminName",val("adminName")||"Admin");
+    localStorage.setItem("ipoAdminEmail",val("adminEmail"));
+    loadProfile();
+    alert("Profile saved.");
+}
+function loadProfile(){
+    const name=localStorage.getItem("ipoAdminName")||"Admin";
+    const email=localStorage.getItem("ipoAdminEmail")||"";
+    document.getElementById("adminName").value=name;
+    document.getElementById("adminEmail").value=email;
+    document.getElementById("adminDisplay").textContent=name;
+}
+function toggleTheme(){
+    document.body.classList.toggle("dark");
+    localStorage.setItem("ipoTheme",document.body.classList.contains("dark")?"dark":"light");
+}
+
+// REFRESH ALL
+function refreshAll(){
+    updateCash();
+    document.getElementById("dashIPO").textContent=ipo.length;
+    document.getElementById("dashDemat").textContent=demat.length;
+    const net=profit.reduce((s,x)=>s+x.net,0);
+    document.getElementById("dashProfit").textContent=moneyFormat(net);
+    document.getElementById("reportIPO").textContent=ipo.length;
+    document.getElementById("reportDemat").textContent=demat.length;
+    document.getElementById("reportMoney").textContent=money.length;
+    document.getElementById("reportProfit").textContent=profit.length;
+    renderDemat();renderIPO();renderMoney();renderProfit();
+    drawDashboardCharts();
+}
+
+// INITIAL LOAD
+loadProfile();
+if(localStorage.getItem("ipoTheme")==="dark")document.body.classList.add("dark");
+refreshAll();
+</script>
+
+</body>
+</html>

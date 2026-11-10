@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPO Desk | Admin Login</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #101c38, #35358b);
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 950px;
+            min-height: 540px;
+            background: white;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+
+        .left-panel {
+            background: linear-gradient(145deg, #102c54, #34358c);
+            color: white;
+            padding: 55px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 34px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+        .logo span {
+            color: #a5aaff;
+        }
+
+        .left-panel h1 {
+            font-size: 32px;
+            margin-bottom: 18px;
+        }
+
+        .left-panel p {
+            color: #dce4ff;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .right-panel {
+            padding: 55px 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-panel h2 {
+            font-size: 29px;
+            color: #17243d;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #d5d9e2;
+            border-radius: 9px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #35358b;
+            box-shadow: 0 0 0 3px rgba(53,53,139,0.1);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 15px;
+            border: none;
+            border-radius: 9px;
+            background: #35358b;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #25256c;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+            color: #d93025;
+        }
+
+        .demo-info {
+            margin-top: 25px;
+            padding: 13px;
+            background: #f1f3ff;
+            border-radius: 9px;
+            color: #444;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        @media(max-width: 700px) {
+            .login-container {
+                grid-template-columns: 1fr;
+            }
+
+            .left-panel {
+                padding: 30px;
+            }
+
+            .left-panel h1 {
+                font-size: 25px;
+            }
+
+            .right-panel {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <div class="left-panel">
+            <div class="logo">IPO<span>Desk</span></div>
+
+            <h1>IPO Management System</h1>
+
+            <p>
+                Manage IPO applications, Demat accounts,
+                money flow and profit booking from one
+                simple dashboard.
+            </p>
+        </div>
+
+        <div class="right-panel">
+
+            <h2>Welcome Back!</h2>
+            <p class="subtitle">Login to your administrator account.</p>
+
+            <form id="loginForm">
+
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter admin email"
+                    required
+                >
+
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter password"
+                    required
+                >
+
+                <button type="submit">Login to Dashboard</button>
+
+                <p class="message" id="message"></p>
+
+            </form>
+
+            <div class="demo-info">
+                <strong>Demo Admin Credentials</strong><br>
+                Email: admin@ipodesk.com<br>
+                Password: IPO@123
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const message = document.getElementById("message");
+
+            if (
+                email === "admin@ipodesk.com" &&
+                password === "IPO@123"
+            ) {
+                sessionStorage.setItem("ipoAdminLoggedIn", "true");
+                window.location.href = "dashboard.html";
+            } else {
+                message.textContent = "Invalid email or password!";
+            }
+        });
+    </script>
+
+</body>
+</html>
